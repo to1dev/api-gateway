@@ -26,7 +26,7 @@ export default class GatewayWorker extends WorkerEntrypoint<Env> {
         return new Response('Hello world!', { headers: { 'Content-Type': 'text/plain' } });
     }
 
-    async realm(realm: string, search: string) {
-        return await getRealm(this.env, this.ctx, realm, search);
+    async realm(realm: string, query: any) {
+        return await getRealm(this.env, this.ctx, realm, query);
     }
 }
