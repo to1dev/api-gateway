@@ -113,6 +113,31 @@ export const parseAtomicalIdfromURN = (line: string): ParsedId | null => {
     return null;
 };
 
+interface JsonData {
+    [key: string]: any;
+}
+
+export async function findObjectWithKey(data: JsonData, targetKey: string): Promise<JsonData | null> {
+    if (typeof data !== 'object' || data === null) {
+        return null;
+    }
+
+    if (targetKey in data) {
+        return data;
+    }
+
+    for (const key in data) {
+        if (data.hasOwnProperty(key)) {
+            const result = await findObjectWithKey(data[key], targetKey);
+            if (result) {
+                return result;
+            }
+        }
+    }
+
+    return null;
+}
+
 function getTxIdFromAtomicalId(atomicalId: string | null): string | null {
     if (!atomicalId) return null;
 
@@ -518,7 +543,8 @@ export async function getRealmProfile(id: string): Promise<any | null> {
             return null;
         }
 
-        const profile = data.response?.result?.state?.latest;
+        const profile = await findObjectWithKey(data.response?.result?.state?.latest, 'v');
+        //const profile = data.response?.result?.state?.latest;
         if (!profile) {
             return null;
         }
