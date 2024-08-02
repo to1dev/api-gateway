@@ -306,6 +306,7 @@ async function saveToD1(env: Env, realm: string, meta: any, profile: any, action
     }
 
     async function _update(): Promise<boolean> {
+        console.log('start updating', meta?.owner, meta?.image, meta?.banner);
         const { success } = await env.MY_DB.prepare(
             `update realms set
                 RealmOwner = ?1,
@@ -318,6 +319,7 @@ async function saveToD1(env: Env, realm: string, meta: any, profile: any, action
             .bind(meta?.owner, meta?.image, meta?.banner, JSON.stringify(meta), JSON.stringify(profile), realm)
             .run();
 
+        console.log('update succeed');
         return success;
     }
 
@@ -326,7 +328,9 @@ async function saveToD1(env: Env, realm: string, meta: any, profile: any, action
         return await _save();
     } else {
         if (action === 'update') {
+            console.log('update');
             await _update();
+            console.log('ok update');
             const cacheKey = `cache:${realm}`;
             await env.api.delete(cacheKey);
         }
@@ -733,11 +737,11 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
             cid: id.cid,
             mint: pid?.mintAddress,
             owner: pid?.address,
-            /*pid: null,
+            pid: null,
             po: null,
             image: null,
             banner: null,
-            background: null,*/
+            background: null,
         };
 
         //const success = await saveToD1(env, realm, _meta, null);
@@ -758,10 +762,10 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
             mint: pid?.mintAddress,
             owner: pid?.address,
             pid: pid.pid,
-            /*po: null,
+            po: null,
             image: null,
             banner: null,
-            background: null,*/
+            background: null,
         };
 
         //const success = await saveToD1(env, realm, _meta, null);
@@ -776,10 +780,10 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
 
     await sendProfileQueueEx(env, pid.pid, profile);
 
-    const theme = _profile?.theme;
+    const theme = _profile.theme;
 
-    let image = _profile?.image;
-    if (!image) {
+    let image = _profile?.image || null;
+    /*if (!image) {
         const _meta = {
             v: _profile?.v,
             id: id.id,
@@ -789,10 +793,9 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
             owner: pid?.address,
             pid: pid.pid,
             po: profile?.owner,
-            theme,
-            /*image: null,
+            image: null,
             banner: null,
-            background: null,*/
+            background: null,
         };
 
         const success = await saveToD1(env, realm, _meta, _profile, action);
@@ -801,39 +804,41 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
             meta: _meta,
             profile: _profile,
         });
-    }
+    }*/
 
     const url = PUBLIC_R2_BASE_URL;
     let imageData: string | null = null;
     let imageHash: string | null = null;
-    const iid = parseAtomicalIdfromURN(image);
-    if (iid?.id) {
-        const cachedImage = await env.MY_BUCKET.head(`images/${iid?.id}`);
-        image = `${url}${iid?.id}`;
-        if (!cachedImage) {
-            const hexImage = await getHexData(iid);
-            if (hexImage) {
-                image = `${url}${iid?.id}`;
-                imageData = await hexToBase64(env, iid?.id, hexImage?.data, hexImage?.bytes, hexImage.ext);
+    if (image) {
+        const iid = parseAtomicalIdfromURN(image);
+        if (iid?.id) {
+            const cachedImage = await env.MY_BUCKET.head(`images/${iid?.id}`);
+            image = `${url}${iid?.id}`;
+            if (!cachedImage) {
+                const hexImage = await getHexData(iid);
+                if (hexImage) {
+                    image = `${url}${iid?.id}`;
+                    imageData = await hexToBase64(env, iid?.id, hexImage?.data, hexImage?.bytes, hexImage.ext);
+                }
             }
-        }
-    } else {
-        if (!image.includes(PUBLIC_R2_BASE_URL_DOMAIN)) {
-            imageHash = urlToHash(image);
-            const cachedImage = await env.MY_BUCKET.head(`images/${imageHash}`);
-            if (cachedImage) {
-                image = `${url}${imageHash}`;
-            } else {
-                const imageHash = await imageToR2(env, image);
-                if (imageHash) {
+        } else {
+            if (!image.includes(PUBLIC_R2_BASE_URL_DOMAIN)) {
+                imageHash = urlToHash(image);
+                const cachedImage = await env.MY_BUCKET.head(`images/${imageHash}`);
+                if (cachedImage) {
                     image = `${url}${imageHash}`;
+                } else {
+                    const imageHash = await imageToR2(env, image);
+                    if (imageHash) {
+                        image = `${url}${imageHash}`;
+                    }
                 }
             }
         }
     }
 
-    let banner = _profile?.banner;
-    if (!banner) {
+    let banner = _profile?.banner || null;
+    /*if (!banner) {
         const _meta = {
             v: _profile?.v,
             id: id.id,
@@ -843,12 +848,11 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
             owner: pid?.address,
             pid: pid.pid,
             po: profile?.owner,
-            theme,
             image: image,
             imageHash: imageHash,
             imageData: imageData,
-            /*banner: null,
-            background: null,*/
+            banner: null,
+            background: null,
         };
 
         const success = await saveToD1(env, realm, _meta, _profile, action);
@@ -857,38 +861,40 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
             meta: _meta,
             profile: _profile,
         });
-    }
+    }*/
 
     let bannerData: string | null = null;
     let bannerHash: string | null = null;
-    const bid = parseAtomicalIdfromURN(banner);
-    if (bid?.id) {
-        const cachedBanner = await env.MY_BUCKET.head(`images/${bid?.id}`);
-        if (cachedBanner) {
-            banner = `${url}${bid?.id}`;
-        } else {
-            const hexBanner = await getHexData(bid);
-            if (hexBanner) {
-                bannerData = await hexToBase64(env, bid?.id, hexBanner?.data, hexBanner?.bytes, hexBanner.ext);
-            }
-        }
-    } else {
-        if (!banner.includes(PUBLIC_R2_BASE_URL_DOMAIN)) {
-            bannerHash = urlToHash(banner);
-            const cachedBanner = await env.MY_BUCKET.head(`images/${bannerHash}`);
+    if (banner) {
+        const bid = parseAtomicalIdfromURN(banner);
+        if (bid?.id) {
+            const cachedBanner = await env.MY_BUCKET.head(`images/${bid?.id}`);
             if (cachedBanner) {
-                banner = `${url}${bannerHash}`;
+                banner = `${url}${bid?.id}`;
             } else {
-                const bannerHash = await imageToR2(env, banner);
-                if (bannerHash) {
+                const hexBanner = await getHexData(bid);
+                if (hexBanner) {
+                    bannerData = await hexToBase64(env, bid?.id, hexBanner?.data, hexBanner?.bytes, hexBanner.ext);
+                }
+            }
+        } else {
+            if (!banner.includes(PUBLIC_R2_BASE_URL_DOMAIN)) {
+                bannerHash = urlToHash(banner);
+                const cachedBanner = await env.MY_BUCKET.head(`images/${bannerHash}`);
+                if (cachedBanner) {
                     banner = `${url}${bannerHash}`;
+                } else {
+                    const bannerHash = await imageToR2(env, banner);
+                    if (bannerHash) {
+                        banner = `${url}${bannerHash}`;
+                    }
                 }
             }
         }
     }
 
-    let background = _profile?.background;
-    if (!background) {
+    let background = _profile?.background || null;
+    /*if (!background) {
         const _meta = {
             v: _profile?.v,
             id: id.id,
@@ -898,14 +904,13 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
             owner: pid?.address,
             pid: pid.pid,
             po: profile?.owner,
-            theme,
             image: image,
             imageHash: imageHash,
             imageData: imageData,
             banner: banner,
             bannerHash: bannerHash,
             bannerData: bannerData,
-            //background: null,
+            background: null,
         };
 
         const success = await saveToD1(env, realm, _meta, _profile, action);
@@ -914,31 +919,33 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
             meta: _meta,
             profile: _profile,
         });
-    }
+    }*/
 
     let backgroundData: string | null = null;
     let backgroundHash: string | null = null;
-    const bkid = parseAtomicalIdfromURN(background);
-    if (bkid?.id) {
-        const cachedBackground = await env.MY_BUCKET.head(`images/${bkid?.id}`);
-        if (cachedBackground) {
-            background = `${url}${bkid?.id}`;
-        } else {
-            const hexBackground = await getHexData(bkid);
-            if (hexBackground) {
-                backgroundData = await hexToBase64(env, bkid?.id, hexBackground?.data, hexBackground?.bytes, hexBackground.ext);
-            }
-        }
-    } else {
-        if (!background.includes(PUBLIC_R2_BASE_URL_DOMAIN)) {
-            backgroundHash = urlToHash(background);
-            const cachedBackground = await env.MY_BUCKET.head(`images/${backgroundHash}`);
+    if (background) {
+        const bkid = parseAtomicalIdfromURN(background);
+        if (bkid?.id) {
+            const cachedBackground = await env.MY_BUCKET.head(`images/${bkid?.id}`);
             if (cachedBackground) {
-                background = `${url}${backgroundHash}`;
+                background = `${url}${bkid?.id}`;
             } else {
-                const backgroundHash = await imageToR2(env, background);
-                if (backgroundHash) {
+                const hexBackground = await getHexData(bkid);
+                if (hexBackground) {
+                    backgroundData = await hexToBase64(env, bkid?.id, hexBackground?.data, hexBackground?.bytes, hexBackground.ext);
+                }
+            }
+        } else {
+            if (!background.includes(PUBLIC_R2_BASE_URL_DOMAIN)) {
+                backgroundHash = urlToHash(background);
+                const cachedBackground = await env.MY_BUCKET.head(`images/${backgroundHash}`);
+                if (cachedBackground) {
                     background = `${url}${backgroundHash}`;
+                } else {
+                    const backgroundHash = await imageToR2(env, background);
+                    if (backgroundHash) {
+                        background = `${url}${backgroundHash}`;
+                    }
                 }
             }
         }
@@ -953,7 +960,6 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
         owner: pid?.address,
         pid: pid.pid,
         po: profile?.owner,
-        theme,
         image: image,
         imageHash: imageHash,
         imageData: imageData,
@@ -965,7 +971,9 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
         backgroundData: backgroundData,
     };
 
+    console.log('start');
     const success = await saveToD1(env, realm, _meta, _profile, action);
+    console.log('ok saving');
 
     return JSON.stringify({
         meta: _meta,
