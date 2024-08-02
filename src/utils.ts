@@ -780,7 +780,7 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
 
     await sendProfileQueueEx(env, pid.pid, profile);
 
-    const theme = _profile.theme;
+    const theme = _profile?.theme || null;
 
     let image = _profile?.image || null;
     /*if (!image) {
@@ -960,6 +960,7 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
         owner: pid?.address,
         pid: pid.pid,
         po: profile?.owner,
+        theme,
         image: image,
         imageHash: imageHash,
         imageData: imageData,
