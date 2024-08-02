@@ -733,11 +733,11 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
             cid: id.cid,
             mint: pid?.mintAddress,
             owner: pid?.address,
-            pid: null,
+            /*pid: null,
             po: null,
             image: null,
             banner: null,
-            background: null,
+            background: null,*/
         };
 
         //const success = await saveToD1(env, realm, _meta, null);
@@ -758,10 +758,10 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
             mint: pid?.mintAddress,
             owner: pid?.address,
             pid: pid.pid,
-            po: null,
+            /*po: null,
             image: null,
             banner: null,
-            background: null,
+            background: null,*/
         };
 
         //const success = await saveToD1(env, realm, _meta, null);
@@ -776,6 +776,8 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
 
     await sendProfileQueueEx(env, pid.pid, profile);
 
+    const theme = _profile?.theme;
+
     let image = _profile?.image;
     if (!image) {
         const _meta = {
@@ -787,9 +789,10 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
             owner: pid?.address,
             pid: pid.pid,
             po: profile?.owner,
-            image: null,
+            theme,
+            /*image: null,
             banner: null,
-            background: null,
+            background: null,*/
         };
 
         const success = await saveToD1(env, realm, _meta, _profile, action);
@@ -840,11 +843,12 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
             owner: pid?.address,
             pid: pid.pid,
             po: profile?.owner,
+            theme,
             image: image,
             imageHash: imageHash,
             imageData: imageData,
-            banner: null,
-            background: null,
+            /*banner: null,
+            background: null,*/
         };
 
         const success = await saveToD1(env, realm, _meta, _profile, action);
@@ -894,13 +898,14 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
             owner: pid?.address,
             pid: pid.pid,
             po: profile?.owner,
+            theme,
             image: image,
             imageHash: imageHash,
             imageData: imageData,
             banner: banner,
             bannerHash: bannerHash,
             bannerData: bannerData,
-            background: null,
+            //background: null,
         };
 
         const success = await saveToD1(env, realm, _meta, _profile, action);
@@ -948,6 +953,7 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
         owner: pid?.address,
         pid: pid.pid,
         po: profile?.owner,
+        theme,
         image: image,
         imageHash: imageHash,
         imageData: imageData,
