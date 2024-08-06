@@ -806,7 +806,7 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
 
     await sendProfileQueueEx(env, pid.pid, profile);
 
-    const theme = _profile?.metadata.theme || null;
+    const theme = _profile?.metadata?.theme || null;
 
     let image = _profile?.image || null;
     /*if (!image) {
