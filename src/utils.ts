@@ -780,7 +780,7 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
     const id = await getAtomicalId(realm);
     if (!id?.id) {
         if (!id?.cid) {
-            return null;
+            return JSON.stringify({});
         }
 
         return JSON.stringify({
