@@ -797,17 +797,11 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
     const pid = await getRealmProfileId(id.id);
     if (!pid?.pid) {
         const _meta = {
-            v: null,
             id: id.id,
             number: pid?.number,
             cid: id.cid,
             mint: pid?.mintAddress,
             owner: pid?.address,
-            pid: null,
-            po: null,
-            image: null,
-            banner: null,
-            background: null,
         };
 
         //const success = await saveToD1(env, realm, _meta, null);
