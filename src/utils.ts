@@ -528,6 +528,27 @@ export async function getRealmProfileId(id: string): Promise<any | null> {
     }
 }
 
+export async function getRealmFastest(env: Env, realm: string): Promise<any | null> {
+    const sql = `SELECT * FROM _realms WHERE RealmName = ?1 LIMIT 1`;
+    const values = await env.MY_DB.prepare(sql).bind(realm).first();
+
+    if (values) {
+        return {
+            id: {
+                id: values?.RealmId,
+                number: values?.RealmNumber,
+            },
+            pid: {
+                minter: values?.RealmMinter,
+                owner: values?.RealmOwner,
+                pid: values?.ProfileId,
+            },
+        };
+    }
+
+    return null;
+}
+
 export async function getRealmProfile(id: string): Promise<any | null> {
     const endpoint = PUBLIC_ELECTRUMX_ENDPOINT5;
     const path: string = `${endpoint}?params=["${id}"]`;
@@ -721,34 +742,53 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
         }
     }
 
+    /*const value2 = await getRealmFastest(env, realm);
+    let id: any = null;
+    let pid: any = null;
+    if (value2) {
+        id = {
+            id: value2?.RealmId,
+        };
+        pid = {
+            number: value2?.RealmNumber,
+            mintAddress: value2?.RealmMinter,
+            address: value2?.RealmOwner,
+            pid: value2?.ProfileId,
+        };
+    }
+
+    if (!id?.id) {
+        return JSON.stringify({});
+    }
+
+    if (!pid?.pid) {
+        return JSON.stringify({
+            meta: {
+                id: id?.id,
+                number: id?.number,
+                mint: pid?.mintAddress,
+                owner: pid?.address,
+                pid: null,
+                po: null,
+                image: null,
+                banner: null,
+                background: null,
+            },
+        });
+    }*/
+
     const id = await getAtomicalId(realm);
     if (!id?.id) {
         if (!id?.cid) {
             return JSON.stringify({
-                meta: {
-                    v: null,
-                    id: null,
-                    cid: null,
-                    pid: null,
-                    po: null,
-                    image: null,
-                    banner: null,
-                    background: null,
-                },
+                meta: null,
                 profile: null,
             });
         }
 
         return JSON.stringify({
             meta: {
-                v: null,
-                id: null,
                 cid: id.cid,
-                pid: null,
-                po: null,
-                image: null,
-                banner: null,
-                background: null,
             },
             profile: null,
         });
@@ -998,9 +1038,7 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
         backgroundData: backgroundData,
     };
 
-    console.log('start');
     const success = await saveToD1(env, realm, _meta, _profile, action);
-    console.log('ok saving');
 
     return JSON.stringify({
         meta: _meta,
