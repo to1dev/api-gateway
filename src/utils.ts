@@ -780,17 +780,13 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
     const id = await getAtomicalId(realm);
     if (!id?.id) {
         if (!id?.cid) {
-            return JSON.stringify({
-                meta: null,
-                profile: null,
-            });
+            return null;
         }
 
         return JSON.stringify({
             meta: {
                 cid: id.cid,
             },
-            profile: null,
         });
     }
 
@@ -808,31 +804,24 @@ export async function getRealm(env: Env, ctx: ExecutionContext, realm: string, q
 
         return JSON.stringify({
             meta: _meta,
-            profile: null,
         });
     }
 
     const profile = await getRealmProfile(pid.pid);
     if (!profile?.profile) {
         const _meta = {
-            v: null,
             id: id.id,
             number: pid?.number,
             cid: id.cid,
             mint: pid?.mintAddress,
             owner: pid?.address,
             pid: pid.pid,
-            po: null,
-            image: null,
-            banner: null,
-            background: null,
         };
 
         //const success = await saveToD1(env, realm, _meta, null);
 
         return JSON.stringify({
             meta: _meta,
-            profile: null,
         });
     }
 
